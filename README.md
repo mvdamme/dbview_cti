@@ -3,7 +3,7 @@
 This gem implements [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html) (CTI) 
 for Rails, as an alternative to Single Table Inheritance (STI). The implementation is based on database views.
 
-Currently, only PostgreSQL (version >= 9.1) is supported.
+Currently, only PostgreSQL (version >= 9.1) is supported. The gem works for both Rails 3.2 and Rails 4 apps.
 
 ## Installation
 
@@ -61,7 +61,7 @@ In the base class in the hierarchy (Vehicle in this case), we add a call to `cti
 It is important to add these before running any migrations for the models, otherwise the database views won't be generated correctly (it is always possible to have them
 regenerated, see further).
 
-Now it's time to create the database tables (and views) using Rails migrations. The table for the base class is created using a standar migration, e.g.   
+Now it's time to create the database tables (and views) using Rails migrations. The table for the base class is created using a standard migration, e.g.   
 
 ```ruby
 class CreateVehicles < ActiveRecord::Migration
@@ -94,8 +94,7 @@ class CreateMotorVehicles < ActiveRecord::Migration
 end
 ```
 
-`cti_create_view(class_name)` creates the necessary database view and triggers, and tells ActiveRecord to use the database view instead of the motor_vehicles table for 
-objects of class MotorVehicle.
+`cti_create_view(class_name)` creates the necessary database view and triggers, and tells ActiveRecord to use the database view instead of the motor_vehicles table.
 
 The migrations for Car and MotorCycle are very similar:
 
@@ -206,4 +205,4 @@ class AddReliabilityToMotorVehicles < ActiveRecord::Migration
 end
 ```
 
-The `change` syntax not (yet?) supported for recreating database views.
+The `change` syntax is not (yet?) supported for recreating database views.
