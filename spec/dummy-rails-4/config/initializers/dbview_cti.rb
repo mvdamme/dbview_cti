@@ -1,0 +1,1 @@
+../../../dummy-rails-3/config/initializers/dbview_cti.rb
