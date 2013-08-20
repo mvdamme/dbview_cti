@@ -94,9 +94,12 @@ class CreateMotorVehicles < ActiveRecord::Migration
 end
 ```
 
-`cti_create_view(class_name)` creates the necessary database view and triggers, and tells ActiveRecord to use the database view instead of the motor_vehicles table.
+There are two things to note in this migration:
 
-The migrations for Car and MotorCycle are very similar:
+1. The table references the table used for the parent class (vehicles in this case)
+2. We call `cti_create_view(class_name)` to create the necessary database view and triggers, and to tell ActiveRecord to use the database view instead of the motor_vehicles table.
+
+The migrations for Car and MotorCycle are very similar (i.e. they reference the parent table and call cti_create_view):
 
 ```ruby
 class CreateCars < ActiveRecord::Migration
@@ -206,3 +209,13 @@ end
 ```
 
 The `change` syntax is not (yet?) supported for recreating database views.
+
+## Notes
+
+* Using dbview_cti doesn't interfere with foreign key constraints. In fact, I recommend adding foreign key constraints
+between the tables in a CTI hierarchy (e.g. using [foreigner](https://github.com/matthuhiggins/foreigner)).
+* Take care when using database id's. Since the data for a Car object is spread over several tables, 
+the id of a Car instance will generally be different than the id of the MotorVehicle instance you get when you 
+convert the Car instance to a MotorVehicle.
+* The gem intercepts calls to destroy to make sure all rows in all tables are removed. This is not the case for 
+delete_all, however, so avoid using delete_all for classes in the CTI hierarchy.
