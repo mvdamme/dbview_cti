@@ -10,10 +10,8 @@ Currently, only PostgreSQL (version >= 9.1) is supported. The gem works for both
 Add the following to your Gemfile:
 
 ```ruby
-gem 'dbview_cti', :git => 'https://github.com/mvdamme/dbview_cti.git'
+gem 'dbview_cti'
 ```
-
-(I will soon create a 'real' gem so the git reference won't be needed anymore)
 
 ## Example
 
