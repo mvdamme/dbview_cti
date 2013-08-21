@@ -13,7 +13,8 @@ Gem::Specification.new do |s|
   s.summary     = "Class Table Inheritance (CTI) for Rails."
   s.description = "This gem implements Class Table Inheritance (CTI) for Rails using database views."
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
+  s.files         = `git ls-files`.split("\n")
+  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
 
   s.add_dependency "rails", ">= 3.2.0"
 
