@@ -1,12 +1,8 @@
 language: ruby
 rvm:
   - 1.9.3
-  - 2.0.0
-  - jruby-19mode
-  - rbx-19mode
 env:
   - "RAILS_VERSION=3.2.0"
-  - "RAILS_VERSION=4.0.0"
 script: bundle exec rspec spec
 before_script:
   - psql -c "CREATE USER cti WITH ENCRYPTED PASSWORD 'cti';" -U postgres
