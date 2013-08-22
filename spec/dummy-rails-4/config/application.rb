@@ -10,6 +10,9 @@ require "sprockets/railtie"
 Bundler.require(*Rails.groups)
 require "dbview_cti"
 
+# for some strange reason, we have to manually require foreigner, it doesn't work through the gemspec file
+require 'foreigner'
+
 module Dummy
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
