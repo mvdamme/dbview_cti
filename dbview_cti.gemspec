@@ -19,6 +19,5 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">= 3.2.0"
 
   s.add_development_dependency "rspec-rails"
-  s.add_development_dependency "activerecord-postgresql-adapter"
   s.add_development_dependency "foreigner"
 end
