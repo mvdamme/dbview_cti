@@ -10,7 +10,7 @@ env:
 script: bundle exec rspec spec
 before_script:
   - psql -c "CREATE USER cti WITH ENCRYPTED PASSWORD 'cti';" -U postgres
-  - psql -c "CREATE DATABASE dbview_cit_test WITH OWNER cti;" -U postgres
+  - psql -c "CREATE DATABASE dbview_cti_test WITH OWNER cti;" -U postgres
   - ruby ./migrate_up.rb
 after_success_script:
   - ruby ./migrate_down.rb
