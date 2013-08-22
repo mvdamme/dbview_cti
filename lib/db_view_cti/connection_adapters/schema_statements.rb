@@ -25,6 +25,11 @@ module DBViewCTI
         yield # perform table changes in block (e.g. add column)
         # recreate views in forward order
         classes.each do |kklass|
+          # any column changes are reflected in the real table cache, but not in the
+          # view cache, so we have to make sure it is cleared
+          true_klass = kklass.constantize
+          true_klass.connection.schema_cache.clear_table_cache!(true_klass.table_name) 
+          true_klass.reset_column_information 
           cti_create_view(kklass, options)
         end
       end
