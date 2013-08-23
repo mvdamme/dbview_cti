@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/mvdamme/dbview_cti"
   s.summary     = "Class Table Inheritance (CTI) for Rails."
   s.description = "This gem implements Class Table Inheritance (CTI) for Rails using database views."
+  s.license     = 'MIT'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
