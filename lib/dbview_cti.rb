@@ -1,6 +1,7 @@
 module DBViewCTI
   extend ActiveSupport::Autoload
   autoload :Names
+  autoload :SchemaDumper
 
   module ConnectionAdapters
     extend ActiveSupport::Autoload
