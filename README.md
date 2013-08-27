@@ -1,4 +1,5 @@
 # dbview_cti
+[![Build Status](https://travis-ci.org/mvdamme/dbview_cti.png)](https://travis-ci.org/mvdamme/dbview_cti)
 
 This gem implements [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html) (CTI) 
 for Rails, as an alternative to Single Table Inheritance (STI). The implementation is based on database views.
