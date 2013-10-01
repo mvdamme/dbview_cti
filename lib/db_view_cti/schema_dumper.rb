@@ -13,8 +13,12 @@ module DBViewCTI
       base_classes = []
       @connection.tables.sort.each do |table|
         next if ignore_table?(table)
-        klass = DBViewCTI::Names.table_to_class_name(table).constantize
-        base_classes << klass if klass.respond_to?('cti_base_class?') && klass.cti_base_class?
+        begin
+          klass = DBViewCTI::Names.table_to_class_name(table).constantize
+          base_classes << klass if klass.respond_to?('cti_base_class?') && klass.cti_base_class?
+        rescue NameError
+          # do nothing
+        end
       end
       base_classes.each do |klass|
         dump_cti_hierarchy(klass, stream)
