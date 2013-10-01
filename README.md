@@ -142,6 +142,23 @@ After running `rake db:migrate` we can now use our new models, e.g. in the rails
 
 Note that Car has all attributes of the vehicles, motor_vehicles and cars tables combined. When saving, the attributes are stored in their corresponding tables.
 
+## Initializer
+
+When running the migrations and for some of the functionality (see e.g. the `convert_to` and `specialize` methods below), 
+it is important that each class knows about the full class hierarchy. This is taken care of automatically when a class 
+is loaded. However, in order to have full class hierarchy information all classes in the hierarchy have to be loaded,
+which is not necessarily the case since rails lazy-loads classes (e.g. in development mode).
+Therefore, we have to force loading of all classes by referencing the leaf-classes in the hierarchy in an initializer.
+
+For the example given above the leaf classes are Car and MotorCycle, so we put the following in an initializer (e.g. in 
+`config/initializers/dbview_cti.rb`):
+
+```ruby
+# Force loading of all classes in the CTI hierachy by referencing the leaf classes here
+Car
+MotorCycle
+```
+
 ## API
 
 ### Models
