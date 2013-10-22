@@ -4,7 +4,8 @@
 This gem implements [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html) (CTI) 
 for Rails, as an alternative to Single Table Inheritance (STI). The implementation is based on database views.
 
-Currently, only PostgreSQL (version >= 9.1) is supported. The gem works for both Rails 3.2 and Rails 4 apps.
+Currently, only PostgreSQL (version >= 9.1) is supported. The gem works for both Rails 3.2 and Rails 4 apps, and on 
+MRI (>= 1.9.3), Rubinius and JRuby in 1.9 mode (due to some issues JRuby is not included in the travis tests, though).
 
 ## Installation
 
@@ -159,6 +160,24 @@ Car
 MotorCycle
 ```
 
+In development mode, Rails reloads files as you modify them. If a file in the class hierarchy is modified, all classes 
+have to be reloaded, otherwise methods such as `specialize` and `convert_to` (see below) will no longer work correctly.
+To make sure the whole hierarchy is reloaded at every request (in development) we can modify the above initializer to:
+
+```ruby
+# this block makes rails reload the code after each request in development mode
+Rails.configuration.to_prepare do
+  # Force loading of all classes in the CTI hierachy by referencing the leaf classes here
+  Car
+  MotorCycle
+end
+```
+
+## Associations
+
+Associations (`has_many`, `has_one`, etc.) work and are inherited as you would expect. The only caveat is that 
+in Rails 4 it might be necessary to explicitly specify the join table when using `has_and_belongs_to_many`.
+
 ## API
 
 ### Models
@@ -228,8 +247,11 @@ The `change` syntax is not (yet?) supported for recreating database views.
 
 ## Notes
 
-* Using dbview_cti doesn't interfere with foreign key constraints. In fact, I recommend adding foreign key constraints
+* Using dbview_cti doesn't interfere with foreign key constraints. In fact, I highly recommend adding foreign key constraints
 between the tables in a CTI hierarchy (e.g. using [foreigner](https://github.com/matthuhiggins/foreigner)).
+* When creating foreign key constraints involving tables that are part of the hierarchy, always refer to the tables
+themselves, not the views. When modifying the models in future migrations, the views may need to be recreated, which
+would cause problems with the foreign key constraints.
 * Take care when using database id's. Since the data for a Car object is spread over several tables, 
 the id of a Car instance will generally be different than the id of the MotorVehicle instance you get when you 
 convert the Car instance to a MotorVehicle.
