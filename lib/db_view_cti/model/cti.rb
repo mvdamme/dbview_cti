@@ -112,7 +112,62 @@ module DBViewCTI
           @cti_descendants ||= {}
           @cti_descendants.each(&block)
           result
-        end      
+        end
+        
+        # redefine association class methods (except for belongs_to)
+        [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
+          self.class_eval <<-eos, __FILE__, __LINE__+1
+            def #{name}(*args)
+              cti_initialize_cti_associations
+              @cti_associations[:#{name}] << args.first
+              super
+            end
+          eos
+        end
+
+        # redefine associations defined in ascendant classes so they keep working
+        def cti_redefine_associations
+          @cti_ascendants.each do |ascendant|
+            [:has_many, :has_and_belongs_to_many].each do |association_type|
+              ascendant.constantize.cti_associations[association_type].each do |association|
+                cti_redefine_to_many(ascendant, association)
+              end
+            end
+            ascendant.constantize.cti_associations[:has_one].each do |association|
+              cti_redefine_has_one(ascendant, association)
+            end
+          end
+        end
+        
+        # redefine has_many and has_and_belongs_to_many association
+        def cti_redefine_to_many(class_name, association)
+          plural = association.to_s
+          singular = association.to_s.singularize
+          [ plural, "#{plural}=", "#{singular}_ids", "#{singular}_ids=" ].each do |name|
+            cti_redefine_single_association(name, class_name)
+          end
+        end
+        
+        # redefine has_many and has_and_belongs_to_many association
+        def cti_redefine_has_one(class_name, association)
+          singular = association
+          [ association, "#{association}=", "build_#{association}", "create_#{association}", "create_#{association}!" ].each do |name|
+            cti_redefine_single_association(name, class_name)
+          end
+        end
+        
+        def cti_redefine_single_association(name, class_name)
+          self.class_eval <<-eos, __FILE__, __LINE__+1
+            def #{name}(*args)
+              self.convert_to('#{class_name}').send('#{name}', *args)
+            end
+          eos
+        end
+
+        def cti_associations
+          cti_initialize_cti_associations
+          @cti_associations
+        end
         
         include DBViewCTI::SQLGeneration::Model
         
@@ -121,6 +176,13 @@ module DBViewCTI
         def cti_table_count
           result = connection.execute("SELECT COUNT(*) FROM #{DBViewCTI::Names.table_name(self)};")
           result[0]['count'].to_i
+        end
+        
+        def cti_initialize_cti_associations
+          @cti_associations ||= {}
+          [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
+            @cti_associations[name] ||= []
+          end
         end
         
       end

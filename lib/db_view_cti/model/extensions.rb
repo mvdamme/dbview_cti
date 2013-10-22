@@ -17,6 +17,7 @@ module DBViewCTI
           @cti_derived_class = true
           self.table_name = DBViewCTI::Names.view_name(self)
           self.superclass.cti_register_descendants(self.name)
+          cti_redefine_associations
         end
   
       end
