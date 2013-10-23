@@ -8,6 +8,7 @@ module DBViewCTI
         def cti_base_class
           self.class_eval { include(DBViewCTI::Model::CTI) }
           @cti_base_class = true
+          cti_redefine_remote_associations
         end
   
         def cti_derived_class
@@ -18,6 +19,10 @@ module DBViewCTI
           self.table_name = DBViewCTI::Names.view_name(self)
           self.superclass.cti_register_descendants(self.name)
           cti_redefine_associations
+          cti_redefine_remote_associations
+          # call redefine_remote_associations on superclass to deal with associations
+          # that were defined after the call to cti_derived_class or cti_base_class
+          self.superclass.cti_redefine_remote_associations
         end
   
       end

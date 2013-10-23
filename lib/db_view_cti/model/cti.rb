@@ -35,7 +35,7 @@ module DBViewCTI
         type_string = type_string.camelize if type.is_a?(Symbol)
         return self if type_string == self.class.name
         query = self.class.cti_inner_join_sql(id, type_string)
-        # query is nil when we try to cenvert to an descendant class (instead of an ascendant),
+        # query is nil when we try to cenvert to a descendant class (instead of an ascendant),
         # or when we try to convert to a class outside of the hierarchy
         if query.nil?
           specialized = specialize
@@ -117,7 +117,7 @@ module DBViewCTI
         # redefine association class methods (except for belongs_to)
         [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
           self.class_eval <<-eos, __FILE__, __LINE__+1
-            def #{name}(*args)
+            def #{name}(*args, &block)
               cti_initialize_cti_associations
               @cti_associations[:#{name}] << args.first
               super
@@ -125,8 +125,8 @@ module DBViewCTI
           eos
         end
 
-        # redefine associations defined in ascendant classes so they keep working
         def cti_redefine_associations
+          # redefine associations defined in ascendant classes so they keep working
           @cti_ascendants.each do |ascendant|
             [:has_many, :has_and_belongs_to_many].each do |association_type|
               ascendant.constantize.cti_associations[association_type].each do |association|
@@ -158,8 +158,59 @@ module DBViewCTI
         
         def cti_redefine_single_association(name, class_name)
           self.class_eval <<-eos, __FILE__, __LINE__+1
-            def #{name}(*args)
-              self.convert_to('#{class_name}').send('#{name}', *args)
+            def #{name}(*args, &block)
+              self.convert_to('#{class_name}').send('#{name}', *args, &block)
+            end
+          eos
+        end
+        
+         # fix the 'remote' (i.e. belongs_to) part of any has_one of has_many association in this class
+        def cti_redefine_remote_associations
+          cti_initialize_cti_associations
+          # redefine remote belongs_to associations
+          [:has_many, :has_one].each do |association_type|
+            @cti_associations[association_type].each do |association|
+              next if @cti_redefined_remote_associations[association_type].include?( association )
+              remote_class = association.to_s.camelize.singularize.constantize
+              remote_associations = remote_class.reflect_on_all_associations(:belongs_to).map(&:name)
+              remote_association = self.name.underscore.to_sym
+              if remote_associations.include?( remote_association )
+                cti_redefine_remote_belongs_to_association(remote_class, remote_association)
+                @cti_redefined_remote_associations[association_type] << association
+              end
+            end
+          end
+          # redefine remote has_many and has_and_belongs_to_many associations
+          [:has_many, :has_and_belongs_to_many].each do |association_type|
+            @cti_associations[association_type].each do |association|
+              next if @cti_redefined_remote_associations[association_type].include?( association )
+              remote_class = association.to_s.camelize.singularize.constantize
+              remote_associations = remote_class.reflect_on_all_associations( association_type ).map(&:name)
+              remote_association = self.name.underscore.pluralize.to_sym
+              if remote_associations.include?( remote_association )
+                cti_redefine_remote_to_many_association(remote_class, remote_association)
+                @cti_redefined_remote_associations[association_type] << association
+              end
+            end
+          end
+        end
+
+        def cti_redefine_remote_belongs_to_association(remote_class, remote_association)
+          remote_class.class_eval <<-eos, __FILE__, __LINE__+1
+            def #{remote_association}=(object, *args, &block)
+              super( object.convert_to('#{self.name}'), *args, &block )
+            end
+          eos
+        end
+
+        def cti_redefine_remote_to_many_association(remote_class, remote_association)
+          remote_class.class_eval <<-eos, __FILE__, __LINE__+1
+            def #{remote_association}=(objects, *args, &block)
+              super( objects.map { |o| o.convert_to('#{self.name}') }, *args, &block)
+            end
+            def #{remote_association}(*args, &block)
+              collection = super
+              DBViewCTI::Model::CollectionDelegator.new(collection, '#{self.name}')
             end
           eos
         end
@@ -180,8 +231,10 @@ module DBViewCTI
         
         def cti_initialize_cti_associations
           @cti_associations ||= {}
+          @cti_redefined_remote_associations ||= {}
           [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
             @cti_associations[name] ||= []
+            @cti_redefined_remote_associations[name] ||= []
           end
         end
         
