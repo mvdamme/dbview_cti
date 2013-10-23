@@ -166,12 +166,6 @@ describe SpaceShuttle do
       ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should eq 1
       astronaut.space_ships.destroy(@shuttle)
       ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should be_zero
-      shuttle3 = SpaceShuttle.create(:name => 'Atlantis', :reliability => 100)
-      astronaut.space_ships = [@shuttle, shuttle2]
-      astronaut.space_ships[0] = shuttle3
-      astronaut.save!
-      ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should eq 2
-      astronaut.space_ships.map(&:id).sort.should eq [shuttle2.convert_to(:space_ship).id, shuttle3.convert_to(:space_ship).id]
     end
     
   end
