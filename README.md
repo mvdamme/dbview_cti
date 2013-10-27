@@ -175,8 +175,29 @@ end
 
 ## Associations
 
-Associations (`has_many`, `has_one`, etc.) work and are inherited as you would expect. The only caveat is that 
-in Rails 4 it might be necessary to explicitly specify the join table when using `has_and_belongs_to_many`.
+Associations (`has_many`, `has_one`, etc.) work and are inherited as you would expect. There are two caveats:
+
+* In the base class, you have to call `cti_base_class` before defining any associations:
+
+```ruby
+class Vehicle < ActiveRecord::Base
+  # call cti_base_class first...
+  cti_base_class
+  
+  # ...before defining any associations
+  has_many :parts
+end
+```
+
+* In Rails 4 it might be necessary to explicitly specify the join table when using `has_and_belongs_to_many`:
+
+```ruby
+class SpaceShip < Vehicle
+  cti_derived_class
+
+  has_and_belongs_to_many :astronauts, :join_table => 'astronauts_space_ships'
+end
+```
 
 ## API
 
