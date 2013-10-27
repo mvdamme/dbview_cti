@@ -368,6 +368,19 @@ describe SpaceShuttle do
       @shuttle.category # should not rais exception
     end    
     
+    it "doesn't save in case of validation errors in associations defined in ascendant classes" do
+      expect {
+        @shuttle.launches.build
+        @shuttle.save!
+      }.to raise_exception(ActiveRecord::RecordInvalid)
+      # same with new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        shuttle.launches.build
+        shuttle.save!
+      }.to raise_exception(ActiveRecord::RecordInvalid)
+    end
+
   end
 
 end

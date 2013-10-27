@@ -58,6 +58,8 @@ module DBViewCTI
 
         # for associations:
         alias_method_chain :association, :cti
+        validate :cti_validate_associations
+
         # save callbacks (necessary for saving associations)
         after_save :cti_save_associations
       end
@@ -74,6 +76,18 @@ module DBViewCTI
         specialize.delete_without_cti
       end
       
+      def cti_validate_associations
+        return_value = true
+        self.class.cti_association_proxies.each_key do |proxy_name|
+          proxy = instance_variable_get(proxy_name)
+          if proxy && !proxy.valid?
+            errors.messages.merge!(proxy.errors.messages)
+            return_value = false
+          end
+        end
+        return_value
+      end
+
       def cti_save_associations
         self.class.cti_association_proxies.each_key do |proxy_name|
           proxy = instance_variable_get(proxy_name)
