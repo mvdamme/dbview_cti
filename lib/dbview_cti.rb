@@ -28,6 +28,7 @@ module DBViewCTI
     extend ActiveSupport::Autoload
     autoload :CTI
     autoload :Extensions
+    autoload :ModelDelegator
     autoload :CollectionDelegator
   end
 end

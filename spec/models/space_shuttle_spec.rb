@@ -44,6 +44,39 @@ describe SpaceShuttle do
       launch3.save!
       @shuttle.launch_ids = [ launch1.id, launch3.id ]
       @shuttle.launch_ids.sort.should eq [ launch1.id, launch3.id ]
+      # test build functionality for adding to existing collection
+      expect {
+        @shuttle.launches.build(:date => Date.yesterday)
+        @shuttle.save!
+      }.to change(Launch, :count).by(1)
+      @shuttle.launches.order(:id).last.date.should eq Date.yesterday
+      # test build functionality for new collection
+      @shuttle.launches.clear
+      @shuttle.launch_ids.should eq []
+      expect {
+        @shuttle.name = 'Shuttle'
+        @shuttle.launches.build(:date => Date.yesterday)
+        @shuttle.save!
+      }.to change(Launch, :count).by(1)
+      @shuttle.name.should eq 'Shuttle'
+      # test build functionality for new collection and new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.name = 'Shuttle'
+          shuttle.launches.build(:date => Date.yesterday)
+          shuttle.launches.build(:date => Date.tomorrow)
+          shuttle.save!
+        }.to change(Launch, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.reload
+      shuttle.name.should eq 'Shuttle'
+      # test adding onto existing collection
+      expect {
+        shuttle.launches.build(:date => Date.today)
+        shuttle.save!
+      }.to change(Launch, :count).by(1)
+      shuttle.launches.order(:id).last.date.should eq Date.today
     end
   
     it "supports assignment on the 'remote' side of a has_many association" do
@@ -58,6 +91,27 @@ describe SpaceShuttle do
         launch.space_ship = @shuttle.convert_to(:vehicle)
         launch.save!
       }.to change(Launch, :count).by(1)
+    end
+
+    it "supports accepts_nested_attributes for has_many associations defined in ascendant classes" do
+      expect {
+        @shuttle.launches_attributes = [
+          {:date => Date.today }, {:date => Date.yesterday }
+        ]
+        @shuttle.save!
+      }.to change(Launch, :count).by(2)
+      @shuttle.launches.order(:date).map(&:date).should eq [ Date.yesterday, Date.today ]
+      # do the same for a new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.launches_attributes = [
+            {:date => Date.today }, {:date => Date.yesterday }
+          ]
+          shuttle.save!
+        }.to change(Launch, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.launches.order(:date).map(&:date).should eq [ Date.yesterday, Date.today ]
     end
     
     it "can use has_many :through associations defined in ascendant classes" do
@@ -77,6 +131,41 @@ describe SpaceShuttle do
       @shuttle.experiment_ids = [ experiment1.id, experiment3.id ]
       @shuttle.experiment_ids.sort.should eq [ experiment1.id, experiment3.id ]
       Experiment.last.space_ships.first.specialize.id.should eq @shuttle.id
+      # test build functionality for adding to existing collection
+      expect {
+        @shuttle.experiments.build(:name => 'Superconductivity')
+        @shuttle.save!
+      }.to change(Experiment, :count).by(1)
+      @shuttle.experiments.order(:id).last.name.should eq 'Superconductivity'
+      # test build functionality for new collection
+      @shuttle.experiments.clear
+      @shuttle.experiment_ids.should eq []
+      expect {
+        @shuttle.name = 'Shuttle'
+        @shuttle.experiments.build(:name => 'Failed experiment')
+        @shuttle.save!
+      }.to change(Experiment, :count).by(1)
+      @shuttle.experiments.first.name.should eq 'Failed experiment'
+      @shuttle.name.should eq 'Shuttle'
+      # test build functionality for new collection and new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.name = 'Shuttle'
+          shuttle.experiments.build(:name => 'Exp1')
+          shuttle.experiments.build(:name => 'Exp2')
+          shuttle.save!
+        }.to change(Experiment, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.reload
+      shuttle.name.should eq 'Shuttle'
+      shuttle.experiments.order(:name).map(&:name).should eq ['Exp1', 'Exp2']
+      # test adding onto existing collection (new object)
+      expect {
+        shuttle.experiments.build(:name => 'Exp3')
+        shuttle.save!
+      }.to change(Experiment, :count).by(1)
+      shuttle.experiments.order(:name).map(&:name).should eq ['Exp1', 'Exp2', 'Exp3']
     end
   
     it "supports operations on the 'remote' side of a has_many :through association" do
@@ -97,6 +186,27 @@ describe SpaceShuttle do
       }.to change(ExperimentSpaceShipPerformance, :count).by(-1)
     end
     
+    it "supports accepts_nested_attributes for has_many :through associations defined in ascendant classes" do
+      expect {
+        @shuttle.experiments_attributes = [
+          {:name => 'Exp1'}, {:name => 'Exp2'}
+        ]
+        @shuttle.save!
+      }.to change(Experiment, :count).by(2)
+      @shuttle.experiments.order(:name).map(&:name).should eq [ 'Exp1', 'Exp2' ]
+      # do the same for a new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.experiments_attributes = [
+            {:name => 'Exp1'}, {:name => 'Exp2'}
+          ]
+          shuttle.save!
+        }.to change(Experiment, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.experiments.order(:name).map(&:name).should eq [ 'Exp1', 'Exp2' ]
+    end
+    
     it "can use has_one associations defined in ascendant classes" do
       captain = Captain.new(:name => 'Armstrong')
       expect {
@@ -110,11 +220,24 @@ describe SpaceShuttle do
         @shuttle.create_captain(:name => 'Glenn')
       }.to change(Captain, :count).by(1)
       @shuttle.captain.space_ship_id.should eq @shuttle.convert_to(:space_ship).id
+      Captain.all.map(&:destroy)
+      # test build for existing object
       expect {
         cap = @shuttle.build_captain(:name => 'Aldrinn')
-        cap.save!
+        @shuttle.save!
       }.to change(Captain, :count).by(1)
       @shuttle.captain.space_ship_id.should eq @shuttle.convert_to(:space_ship).id
+      # test build for new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.name = 'Shuttle'
+          cap = shuttle.build_captain(:name => 'Aldrinn')
+          shuttle.save!
+        }.to change(Captain, :count).by(1)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.name.should eq 'Shuttle'
+      shuttle.captain.space_ship_id.should eq shuttle.convert_to(:space_ship).id
     end
   
     it "supports operations on the 'remote' side of a has_one association" do
@@ -129,6 +252,23 @@ describe SpaceShuttle do
         captain.space_ship = @shuttle.convert_to(:vehicle)
         captain.save!
       }.to change(Captain, :count).by(1)
+    end
+    
+    it "supports accepts_nested_attributes for has_one associations defined in ascendant classes" do
+      expect {
+        @shuttle.captain_attributes = {:name => 'Haddock'}
+        @shuttle.save!
+      }.to change(Captain, :count).by(1)
+      @shuttle.captain.name.should eq 'Haddock'
+      # do the same for a new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.captain_attributes = {:name => 'Haddock'}
+          shuttle.save!
+        }.to change(Captain, :count).by(1)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.captain.name.should eq 'Haddock'
     end
     
     it "can use has_and_belongs_to_many associations defined in ascendant classes" do
@@ -148,6 +288,41 @@ describe SpaceShuttle do
       astronaut3.save!
       @shuttle.astronaut_ids = [ astronaut1.id, astronaut3.id ]
       @shuttle.astronaut_ids.sort.should eq [ astronaut1.id, astronaut3.id ]
+      # test build functionality for adding to existing collection
+      expect {
+        @shuttle.astronauts.build(:name => 'astro1')
+        @shuttle.save!
+      }.to change(Astronaut, :count).by(1)
+      @shuttle.astronauts.order(:id).last.name.should eq 'astro1'
+      # test build functionality for new collection
+      @shuttle.astronauts.clear
+      @shuttle.astronaut_ids.should eq []
+      expect {
+        @shuttle.name = 'Shuttle'
+        @shuttle.astronauts.build(:name => 'astro2')
+        @shuttle.save!
+      }.to change(Astronaut, :count).by(1)
+      @shuttle.astronauts.first.name.should eq 'astro2'
+      @shuttle.name.should eq 'Shuttle'
+      # test build functionality for new collection and new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.name = 'Shuttle'
+          shuttle.astronauts.build(:name => 'Astro1')
+          shuttle.astronauts.build(:name => 'Astro2')
+          shuttle.save!
+        }.to change(Astronaut, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.reload
+      shuttle.name.should eq 'Shuttle'
+      shuttle.astronauts.order(:name).map(&:name).should eq ['Astro1', 'Astro2']
+      # test adding onto existing collection (new object)
+      expect {
+        shuttle.astronauts.build(:name => 'Astro3')
+        shuttle.save!
+      }.to change(Astronaut, :count).by(1)
+      shuttle.astronauts.order(:name).map(&:name).should eq ['Astro1', 'Astro2', 'Astro3']
     end
 
     it "supports operations on the 'remote' side of a has_and_belongs_to_many association" do
@@ -167,6 +342,31 @@ describe SpaceShuttle do
       astronaut.space_ships.destroy(@shuttle)
       ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should be_zero
     end
+
+    it "supports accepts_nested_attributes for has_and_belongs_to_many associations defined in ascendant classes" do
+      expect {
+        @shuttle.astronauts_attributes = [
+          {:name => 'Astro1'}, {:name => 'Astro2'}
+        ]
+        @shuttle.save!
+      }.to change(Astronaut, :count).by(2)
+      @shuttle.astronauts.order(:name).map(&:name).should eq [ 'Astro1', 'Astro2' ]
+      # do the same for a new object
+      shuttle = SpaceShuttle.new(:name => 'Endeavour', :reliability => 100)
+      expect {
+        expect {
+          shuttle.astronauts_attributes = [
+            {:name => 'Astro1'}, {:name => 'Astro2'}
+          ]
+          shuttle.save!
+        }.to change(Astronaut, :count).by(2)
+      }.to change(SpaceShuttle, :count).by(1)
+      shuttle.astronauts.order(:name).map(&:name).should eq [ 'Astro1', 'Astro2' ]
+    end
+        
+    it "doesn't choke on belongs_to associations" do
+      @shuttle.category # should not rais exception
+    end    
     
   end
 

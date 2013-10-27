@@ -31,6 +31,7 @@ module DBViewCTI
       end
       
       def convert_to(type)
+        return nil unless persisted?
         type_string = type.to_s
         type_string = type_string.camelize if type.is_a?(Symbol)
         return self if type_string == self.class.name
@@ -48,26 +49,59 @@ module DBViewCTI
         type_string.constantize.find(id.to_i)
       end
       
-      # change destroy and delete methods to operate on most specialized obect
+      # change destroy and delete methods to operate on most specialized object
       included do
-        alias_method_chain :destroy, :specialize
-        alias_method_chain :delete, :specialize
+        alias_method_chain :destroy, :cti
+        alias_method_chain :delete, :cti
         # destroy! seems te be defined in Rails 4
-        alias_method_chain :destroy!, :specialize if self.method_defined?(:destroy!) 
+        alias_method_chain :destroy!, :cti if self.method_defined?(:destroy!)
+
+        # for associations:
+        alias_method_chain :association, :cti
+        # save callbacks (necessary for saving associations)
+        after_save :cti_save_associations
       end
       
-      def destroy_with_specialize
-        specialize.destroy_without_specialize
+      def destroy_with_cti
+        specialize.destroy_without_cti
       end
       
-      def destroy_with_specialize!
-        specialize.destroy_without_specialize!
+      def destroy_with_cti!
+        specialize.destroy_without_cti!
       end
       
-      def delete_with_specialize
-        specialize.delete_without_specialize
+      def delete_with_cti
+        specialize.delete_without_cti
       end
       
+      def cti_save_associations
+        self.class.cti_association_proxies.each_key do |proxy_name|
+          proxy = instance_variable_get(proxy_name)
+          proxy.save if proxy
+        end
+        true
+      end
+      
+      def association_with_cti(*args)
+        return association_without_cti(*args) unless args.length == 1
+        association_name = args[0]
+        proxy = cti_association_proxy(association_name)
+        proxy ||= self
+        proxy.association_without_cti(association_name)
+      end
+      
+      def cti_association_proxy(association_name)
+        return nil if self.class.reflect_on_all_associations(:belongs_to).map(&:name).include?(association_name.to_sym)
+        proxy_name = self.class.cti_association_proxy_name(association_name)
+        proxy = instance_variable_get(proxy_name)
+        if !proxy && !self.class.cti_has_association?(association_name)
+          instance_variable_set(proxy_name, 
+                                ModelDelegator.new(self, self.class.cti_association_proxies[proxy_name]))
+          proxy = instance_variable_get(proxy_name)
+        end
+        proxy
+      end
+
       module ClassMethods
         
         def cti_base_class?
@@ -78,7 +112,7 @@ module DBViewCTI
           !!@cti_derived_class
         end
         
-        attr_accessor :cti_descendants, :cti_ascendants
+        attr_accessor :cti_descendants, :cti_ascendants, :cti_association_proxies
         
         # registers a derived class and its descendants in the current class
         # class_name: name of derived class (the one calling cti_register_descendants on this class)
@@ -114,7 +148,7 @@ module DBViewCTI
           result
         end
         
-        # redefine association class methods (except for belongs_to)
+        # redefine association class methods
         [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
           self.class_eval <<-eos, __FILE__, __LINE__+1
             def #{name}(*args, &block)
@@ -125,43 +159,18 @@ module DBViewCTI
           eos
         end
 
-        def cti_redefine_associations
-          # redefine associations defined in ascendant classes so they keep working
+        def cti_create_association_proxies
+          # create hash with proxy and class names. The proxies themselves will be created
+          # by the 'association' instance method when the association is used for the first time.
+          @cti_association_proxies ||= {}
           @cti_ascendants.each do |ascendant|
-            [:has_many, :has_and_belongs_to_many].each do |association_type|
+            [:has_many, :has_and_belongs_to_many, :has_one].each do |association_type|
               ascendant.constantize.cti_associations[association_type].each do |association|
-                cti_redefine_to_many(ascendant, association)
+                proxy_name = cti_association_proxy_name(association)
+                @cti_association_proxies[proxy_name] = ascendant
               end
             end
-            ascendant.constantize.cti_associations[:has_one].each do |association|
-              cti_redefine_has_one(ascendant, association)
-            end
           end
-        end
-        
-        # redefine has_many and has_and_belongs_to_many association
-        def cti_redefine_to_many(class_name, association)
-          plural = association.to_s
-          singular = association.to_s.singularize
-          [ plural, "#{plural}=", "#{singular}_ids", "#{singular}_ids=" ].each do |name|
-            cti_redefine_single_association(name, class_name)
-          end
-        end
-        
-        # redefine has_many and has_and_belongs_to_many association
-        def cti_redefine_has_one(class_name, association)
-          singular = association
-          [ association, "#{association}=", "build_#{association}", "create_#{association}", "create_#{association}!" ].each do |name|
-            cti_redefine_single_association(name, class_name)
-          end
-        end
-        
-        def cti_redefine_single_association(name, class_name)
-          self.class_eval <<-eos, __FILE__, __LINE__+1
-            def #{name}(*args, &block)
-              self.convert_to('#{class_name}').send('#{name}', *args, &block)
-            end
-          eos
         end
         
          # fix the 'remote' (i.e. belongs_to) part of any has_one of has_many association in this class
@@ -214,10 +223,24 @@ module DBViewCTI
             end
           eos
         end
+        
+        def cti_association_proxy_name(association)
+          "@cti_#{association}_association_proxy"
+        end
 
         def cti_associations
           cti_initialize_cti_associations
           @cti_associations
+        end
+        
+        def cti_has_association?(association_name)
+          if !@cti_all_associations
+            @cti_all_associations = @cti_associations.keys.inject([]) do |result, key|
+              result += @cti_associations[key]
+              result 
+            end
+          end
+          @cti_all_associations.include?(association_name.to_sym)
         end
         
         include DBViewCTI::SQLGeneration::Model
@@ -236,6 +259,7 @@ module DBViewCTI
             @cti_associations[name] ||= []
             @cti_redefined_remote_associations[name] ||= []
           end
+          @cti_association_proxies ||= {}
         end
         
       end

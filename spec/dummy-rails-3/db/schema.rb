@@ -39,6 +39,12 @@ ActiveRecord::Schema.define(:version => 20131022030720) do
     t.datetime "updated_at",       :null => false
   end
 
+  create_table "categories", :force => true do |t|
+    t.string   "name"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
   create_table "experiment_space_ship_performances", :force => true do |t|
     t.integer  "experiment_id"
     t.integer  "space_ship_id"
@@ -84,6 +90,7 @@ ActiveRecord::Schema.define(:version => 20131022030720) do
 
   create_table "space_ships", :force => true do |t|
     t.integer  "vehicle_id"
+    t.integer  "category_id"
     t.boolean  "single_use"
     t.datetime "created_at",  :null => false
     t.datetime "updated_at",  :null => false
@@ -122,6 +129,7 @@ ActiveRecord::Schema.define(:version => 20131022030720) do
 
   add_foreign_key "rocket_engines", "space_ships", :name => "rocket_engines_space_ship_id_fk"
 
+  add_foreign_key "space_ships", "categories", :name => "space_ships_category_id_fk"
   add_foreign_key "space_ships", "vehicles", :name => "space_ships_vehicle_id_fk"
 
   add_foreign_key "space_shuttles", "space_ships", :name => "space_shuttles_space_ship_id_fk"
