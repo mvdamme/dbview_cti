@@ -2,7 +2,7 @@ require 'delegate'
 
 module DBViewCTI
   module Model
-
+    
     class ModelDelegator < SimpleDelegator
       
       attr_reader :cti_target_class
@@ -13,6 +13,8 @@ module DBViewCTI
         if !@cti_converted_object
           @cti_converted_object = object.becomes(target_class.constantize)
           @cti_is_new = true
+        else
+          disable_validations
         end
         @cti_target_class = target_class
         super( @cti_converted_object )
@@ -38,9 +40,33 @@ module DBViewCTI
         @cti_is_new = false
         @cti_object.id = old_id
         @cti_converted_object = @cti_object.convert_to( @cti_target_class )
+        disable_validations
         __setobj__(@cti_converted_object)
         retval
       end
+      
+      private
+      
+        module DisableValidator
+          def validate_each(record, *args)
+            return if record.respond_to?(:cti_disable_validations) && record.cti_disable_validations
+            super
+          end
+          
+          if Rails::VERSION::MAJOR == 3
+            def validate(record, *args)
+              return if record.respond_to?(:cti_disable_validations) && record.cti_disable_validations
+              super
+            end
+          end
+        end
+        
+        def disable_validations
+          @cti_converted_object.cti_disable_validations = true
+          @cti_converted_object._validators.values.flatten.each do |validator|
+            validator.extend( DisableValidator )
+          end
+        end
       
     end
     

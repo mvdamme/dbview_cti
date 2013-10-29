@@ -58,10 +58,12 @@ module DBViewCTI
 
         # for associations:
         alias_method_chain :association, :cti
-        validate :cti_validate_associations
-
         # save callbacks (necessary for saving associations)
         after_save :cti_save_associations
+
+        # validations
+        validate :cti_validate_associations
+        attr_accessor :cti_disable_validations
       end
       
       def destroy_with_cti

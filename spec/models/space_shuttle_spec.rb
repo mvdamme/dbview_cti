@@ -381,6 +381,30 @@ describe SpaceShuttle do
       }.to raise_exception(ActiveRecord::RecordInvalid)
     end
 
+    it "doesn't choke on non-association related validations in association proxies" do
+      @shuttle.update_attribute(:name, nil)
+      expect {
+        @shuttle.save!
+      }.to raise_exception(ActiveRecord::RecordInvalid)
+      expect {
+        @shuttle.name = 'Name'
+        @shuttle.launches.build(:date => Date.today)
+        @shuttle.save!
+      }.to change(Launch, :count).by(1)
+      # similar for new object
+      shuttle = SpaceShuttle.new
+      expect {
+        shuttle.launches.build(:date => Date.today)
+        shuttle.save!
+      }.to raise_exception(ActiveRecord::RecordInvalid)
+      expect {
+        expect {
+          shuttle.name = 'Name'
+          shuttle.save!
+        }.to change(Launch, :count).by(1)
+      }.to change(SpaceShuttle, :count).by(1)
+    end
+    
   end
 
 end
