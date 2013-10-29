@@ -23,7 +23,7 @@ describe SpaceShuttle do
     before :each do
       # create dummy space ships to make sure the shuttle we'll create has a different database id than
       # its associated spaceship
-      (1..2).map { SpaceShip.create }
+      (1..2).map { SpaceShip.create(:name => 'test') }
       @shuttle = SpaceShuttle.create(:name => 'Discovery', :reliability => 100)
       @shuttle.id.should_not eq @shuttle.convert_to(:space_ship).id
     end
