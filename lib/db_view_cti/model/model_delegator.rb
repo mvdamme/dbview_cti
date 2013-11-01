@@ -11,11 +11,10 @@ module DBViewCTI
         @cti_object = object
         @cti_converted_object = object.convert_to(target_class)
         if !@cti_converted_object
-          @cti_converted_object = object.becomes(target_class.constantize)
+          @cti_converted_object = target_class.constantize.new
           @cti_is_new = true
-        else
-          disable_validations
         end
+        disable_validations
         @cti_target_class = target_class
         super( @cti_converted_object )
       end
@@ -26,23 +25,19 @@ module DBViewCTI
       
       def save(*args, &block)
         return super unless cti_is_new?
-        # special case for new objects, we need som hackish id-juggling
-        old_id = @cti_object.id
+        # special case for new objects, we need to manually set the id and trick the object
+        # to think it was already persisted, so we get an update instead of an insert
         new_id = @cti_object.convert_to( @cti_target_class ).id
-        # since @cti_converted_object was created using 'becomes', @cti_object.id changes
-        # as well in the following statement. So we saved it in old_id and restore it after the
-        # call to save (i.e. super)
-        @cti_object.reload  # only needed in rails 4
         self.id = new_id
-        self.created_at = @cti_object.created_at  # only needed in rails 4
-        self.updated_at = @cti_object.updated_at  # only needed in rails 4
+        force_persisted_state
+        self.created_at = @cti_object.created_at
+        self.updated_at = @cti_object.updated_at
         retval = !!super
-        @cti_is_new = false
-        @cti_object.id = old_id
+        # throw away just saved object and convert from scratch
         @cti_converted_object = @cti_object.convert_to( @cti_target_class )
         disable_validations
         __setobj__(@cti_converted_object)
-        retval
+        return retval
       end
       
       private
@@ -61,13 +56,29 @@ module DBViewCTI
           end
         end
         
-        def disable_validations
-          @cti_converted_object.cti_disable_validations = true
-          @cti_converted_object._validators.values.flatten.each do |validator|
+        def disable_validations(object = nil)
+          object ||= @cti_converted_object
+          object.cti_disable_validations = true
+          object._validators.values.flatten.each do |validator|
             validator.extend( DisableValidator )
           end
         end
+        
+        module ForcePersistedState
+          def persisted?
+            true
+          end
+          
+          def new_record?
+            false
+          end
+        end
       
+        def force_persisted_state(object = nil)
+          object ||= @cti_converted_object
+          object.extend( ForcePersistedState )
+        end
+
     end
     
   end

@@ -365,7 +365,7 @@ describe SpaceShuttle do
     end
         
     it "doesn't choke on belongs_to associations" do
-      @shuttle.category # should not rais exception
+      @shuttle.category # should not raise exception
     end    
     
     it "doesn't save in case of validation errors in associations defined in ascendant classes" do
