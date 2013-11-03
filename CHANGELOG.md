@@ -1,3 +1,8 @@
+## 0.1.3 (3/11/2013)
+
+* Fixed validation issue
+* Improved handling of associations in new (not yet persisted) objects
+
 ## 0.1.2 (27/10/2013)
 
 * Fundamental change to how associations are handled in order to solve problems with build
