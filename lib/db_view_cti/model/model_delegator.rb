@@ -42,26 +42,9 @@ module DBViewCTI
       
       private
       
-        module DisableValidator
-          def validate_each(record, *args)
-            return if record.respond_to?(:cti_disable_validations) && record.cti_disable_validations
-            super
-          end
-          
-          if Rails::VERSION::MAJOR == 3
-            def validate(record, *args)
-              return if record.respond_to?(:cti_disable_validations) && record.cti_disable_validations
-              super
-            end
-          end
-        end
-        
         def disable_validations(object = nil)
           object ||= @cti_converted_object
           object.cti_disable_validations = true
-          object._validators.values.flatten.each do |validator|
-            validator.extend( DisableValidator )
-          end
         end
         
         module ForcePersistedState

@@ -62,7 +62,7 @@ module DBViewCTI
         after_save :cti_save_associations
 
         # validations
-        validate :cti_validate_associations
+        validate :cti_validate_associations, :cti_no_disable => true
         attr_accessor :cti_disable_validations
       end
       
@@ -162,6 +162,31 @@ module DBViewCTI
           @cti_descendants ||= {}
           @cti_descendants.each(&block)
           result
+        end
+        
+        # redefine validate to always add :unless proc so we can disable the validations for an object
+        # by setting the cti_disable_validations accessor to true
+        def validate(*args, &block)
+          # we specifically don't want to disable balidations belonging to associations. Based on the naming
+          # rails uses, we return immediately in such cases (there must be a cleaner way to do this...)
+          return super if args.first && args.first.to_s =~ /^validate_associated_records_for_/
+          # rest of implementation insipred by the validate implementation in rails
+          options = args.extract_options!.dup
+          return super if options[:cti_no_disable]
+          if options.key?(:unless)
+            options[:unless] = Array(options[:unless])
+            options[:unless].unshift( cti_validation_unless_proc )
+          else
+            options[:unless] = cti_validation_unless_proc
+          end
+          args << options
+          return super(*args, &block)
+        end
+        
+        def cti_validation_unless_proc
+          @cti_validation_unless_proc ||= Proc.new do |object| 
+            object.respond_to?(:cti_disable_validations) && object.cti_disable_validations
+          end
         end
         
         # redefine association class methods
