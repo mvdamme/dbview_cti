@@ -221,11 +221,9 @@ module DBViewCTI
           [:has_many, :has_one].each do |association_type|
             @cti_associations[association_type].each do |association|
               next if @cti_redefined_remote_associations[association_type].include?( association )
-              remote_class = association.to_s.camelize.singularize.constantize
-              remote_associations = remote_class.reflect_on_all_associations(:belongs_to).map(&:name)
-              remote_association = self.name.underscore.to_sym
-              if remote_associations.include?( remote_association )
-                cti_redefine_remote_belongs_to_association(remote_class, remote_association)
+              if cti_reciprocal_association_present_for?( association, :belongs_to )
+                remote_class = cti_association_name_to_class_name( association ).constantize
+                cti_redefine_remote_belongs_to_association(remote_class, cti_class_name_to_association_name.to_sym)
                 @cti_redefined_remote_associations[association_type] << association
               end
             end
@@ -234,15 +232,38 @@ module DBViewCTI
           [:has_many, :has_and_belongs_to_many].each do |association_type|
             @cti_associations[association_type].each do |association|
               next if @cti_redefined_remote_associations[association_type].include?( association )
-              remote_class = association.to_s.camelize.singularize.constantize
-              remote_associations = remote_class.reflect_on_all_associations( association_type ).map(&:name)
-              remote_association = self.name.underscore.pluralize.to_sym
-              if remote_associations.include?( remote_association )
-                cti_redefine_remote_to_many_association(remote_class, remote_association)
+              if cti_reciprocal_association_present_for?( association, association_type, true )
+                remote_class = cti_association_name_to_class_name( association ).constantize
+                cti_redefine_remote_to_many_association(remote_class, cti_class_name_to_association_name( true ).to_sym)
                 @cti_redefined_remote_associations[association_type] << association
               end
             end
           end
+        end
+        
+        # Check if a reciprocal association of type 'type' is present for the given association.
+        # (example: check if a has_many association has a corresponding belongs_to  in the remote class).
+        # Plural indicates wether the remote association we're looking for is plural (i.e. has_many :space_ships)
+        # or singular (i.e. belongs_to :space_ship).
+        # Normally, the method checks if the remote association refers to this class, but it is possible to
+        # pass in 'class_name' to check different classes
+        def cti_reciprocal_association_present_for?(association, type, plural = false, class_name = nil)
+          remote_class = cti_association_name_to_class_name( association ).constantize
+          remote_associations = remote_class.reflect_on_all_associations( type ).map(&:name)
+          remote_associations.include?( cti_class_name_to_association_name(plural, class_name).to_sym )
+        end
+        
+        # converts e.g. SpaceShip to :space_ship (for plural == false), or :space_ships (for plural true)
+        def cti_class_name_to_association_name(plural = false, class_name = nil)
+          class_name ||= self.name
+          association_name = class_name.underscore
+          association_name = association_name.pluralize if plural
+          association_name
+        end
+
+        # converts e.g. :space_ships to SpaceShip
+        def cti_association_name_to_class_name(association_name)
+          association_name.to_s.camelize.singularize
         end
 
         def cti_redefine_remote_belongs_to_association(remote_class, remote_association)
