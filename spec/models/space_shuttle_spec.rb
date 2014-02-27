@@ -91,6 +91,12 @@ describe SpaceShuttle do
         launch.space_ship = @shuttle.convert_to(:vehicle)
         launch.save!
       }.to change(Launch, :count).by(1)
+      launch = Launch.new(:date => Date.today)
+      # also test nil assignment
+      expect {
+        launch.space_ship = nil
+        launch.save!
+      }.to change(Launch, :count).by(1)
     end
 
     it "supports accepts_nested_attributes for has_many associations defined in ascendant classes" do
@@ -184,6 +190,18 @@ describe SpaceShuttle do
       expect {
         experiment.space_ships.delete(@shuttle)
       }.to change(ExperimentSpaceShipPerformance, :count).by(-1)
+      # make sure nil assignments raise activerecord exceptions and not exceptions in dbview_cti code
+      expect {
+        experiment.space_ships = [ nil ]
+        experiment.save!
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
+      expect {
+        experiment.space_ships << nil
+        experiment.save!
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
+      expect {
+        experiment.space_ships.delete(nil)
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
     end
     
     it "supports accepts_nested_attributes for has_many :through associations defined in ascendant classes" do
@@ -250,6 +268,12 @@ describe SpaceShuttle do
       captain = Captain.new(:name => 'Armstrong')
       expect {
         captain.space_ship = @shuttle.convert_to(:vehicle)
+        captain.save!
+      }.to change(Captain, :count).by(1)
+      # also test nil assignment
+      captain = Captain.new(:name => 'Armstrong')
+      expect {
+        captain.space_ship = nil
         captain.save!
       }.to change(Captain, :count).by(1)
     end
@@ -341,6 +365,18 @@ describe SpaceShuttle do
       ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should eq 1
       astronaut.space_ships.destroy(@shuttle)
       ActiveRecord::Base.connection().execute(query)[0]['count'].to_i.should be_zero
+      # make sure nil assignments raise activerecord exceptions and not exceptions in dbview_cti code
+      expect {
+        astronaut.space_ships = [nil]
+        astronaut.save!
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
+      expect {
+        astronaut.space_ships << nil
+        astronaut.save!
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
+      expect {
+        astronaut.space_ships.destroy(nil)
+      }.to raise_error(ActiveRecord::AssociationTypeMismatch)
     end
 
     it "supports accepts_nested_attributes for has_and_belongs_to_many associations defined in ascendant classes" do

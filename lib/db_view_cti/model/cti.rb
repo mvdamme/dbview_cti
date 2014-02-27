@@ -269,7 +269,7 @@ module DBViewCTI
         def cti_redefine_remote_belongs_to_association(remote_class, remote_association)
           remote_class.class_eval <<-eos, __FILE__, __LINE__+1
             def #{remote_association}=(object, *args, &block)
-              super( object.convert_to('#{self.name}'), *args, &block )
+              super( object.try(:convert_to, '#{self.name}'), *args, &block )
             end
           eos
         end
@@ -277,7 +277,7 @@ module DBViewCTI
         def cti_redefine_remote_to_many_association(remote_class, remote_association)
           remote_class.class_eval <<-eos, __FILE__, __LINE__+1
             def #{remote_association}=(objects, *args, &block)
-              super( objects.map { |o| o.convert_to('#{self.name}') }, *args, &block)
+              super( objects.map { |o| o.try(:convert_to, '#{self.name}') }, *args, &block)
             end
             def #{remote_association}(*args, &block)
               collection = super

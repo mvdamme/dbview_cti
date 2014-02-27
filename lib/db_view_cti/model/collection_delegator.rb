@@ -10,7 +10,7 @@ module DBViewCTI
       end
       
       def <<(object, *args, &block)
-        __getobj__.send('<<', object.convert_to(@target_class_name), *args, &block)
+        __getobj__.send('<<', object.try(:convert_to, @target_class_name), *args, &block)
       end
 
       def []=(*args, &block)
