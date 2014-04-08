@@ -1,3 +1,7 @@
+## 0.1.4 (8/04/2014)
+
+* Fixed association issues
+
 ## 0.1.3 (3/11/2013)
 
 * Fixed validation issue
