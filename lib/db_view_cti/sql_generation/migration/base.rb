@@ -57,6 +57,10 @@ module DBViewCTI
           "DROP VIEW #{@view_name};"
         end
         
+        def view_exists_sql
+          raise NotImplementedError, "DBViewCTI: view_exists_sql not implemented for this adapter."
+        end
+
         def create_trigger_sql
           # to be implemented by derived classes
           raise NotImplementedError, "DBViewCTI: create_trigger_sql not implemented for this adapter."

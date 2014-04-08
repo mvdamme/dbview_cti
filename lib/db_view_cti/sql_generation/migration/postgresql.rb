@@ -87,6 +87,10 @@ module DBViewCTI
           insert_trigger_func + insert_trigger
         end
   
+        def view_exists_sql
+          "SELECT count(*) FROM pg_views where viewname='#{@view_name}';"
+        end
+
         def drop_trigger_sql
           query = <<-eos
             DROP TRIGGER IF EXISTS #{@trigger_name} ON #{@view_name};

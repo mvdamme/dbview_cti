@@ -14,6 +14,11 @@ module DBViewCTI
         cti_execute_sql(generator.drop_view_sql)
       end
       
+      def cti_view_exists?(class_name)
+        generator = DBViewCTI::SQLGeneration::Migration::Factory.generator(class_name)
+        cti_execute_sql(generator.view_exists_sql)[0]['count'].to_i > 0
+      end
+
       # use with block in up/down methods
       def cti_recreate_views_after_change_to(class_name, options = {})
         klass = class_name.constantize
