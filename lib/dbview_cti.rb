@@ -1,3 +1,8 @@
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym('CTI')
+  inflect.acronym('CTIs')
+end
+
 module DBViewCTI
   extend ActiveSupport::Autoload
   autoload :Names
@@ -30,6 +35,12 @@ module DBViewCTI
     autoload :Extensions
     autoload :ModelDelegator
     autoload :CollectionDelegator
+    autoload :TypeConversion, 'db_view_cti/model/cti/type_conversion'
+    autoload :Hierarchy, 'db_view_cti/model/cti/hierarchy'
+    autoload :Destroy, 'db_view_cti/model/cti/destroy'
+    autoload :SQL, 'db_view_cti/model/cti/sql'
+    autoload :Associations, 'db_view_cti/model/cti/associations'
+    autoload :AssociationValidations, 'db_view_cti/model/cti/association_validations'
   end
 end
 
