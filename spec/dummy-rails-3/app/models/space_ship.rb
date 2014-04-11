@@ -16,4 +16,6 @@ class SpaceShip < Vehicle
   has_many :experiment_space_ship_performances
   has_many :experiments, :through => :experiment_space_ship_performances
   accepts_nested_attributes_for :experiments
+  
+  has_many :upgraded_to, :class_name => 'SpaceShuttle', :foreign_key => 'upgraded_from_id'
 end

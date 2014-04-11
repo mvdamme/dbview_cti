@@ -441,6 +441,21 @@ describe SpaceShuttle do
       }.to change(SpaceShuttle, :count).by(1)
     end
     
+    it "association logic also works for associations with non-standard names" do
+      # check has_many side
+      shuttle2 = SpaceShuttle.create(:name => 'Endeavour', :reliability => 100)
+      @shuttle.upgraded_to << shuttle2
+      @shuttle.save!
+      shuttle2.reload
+      shuttle2.upgraded_from.specialize.id.should eq @shuttle.id
+      # check belongs_to side
+      shuttle3 = SpaceShuttle.create(:name => 'Endeavour', :reliability => 100)
+      @shuttle.upgraded_from = shuttle3
+      @shuttle.save!
+      @shuttle.reload
+      @shuttle.upgraded_from.specialize.id.should eq shuttle3.id
+    end
+
   end
 
 end

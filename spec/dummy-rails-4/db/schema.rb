@@ -11,7 +11,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131022020655) do
+ActiveRecord::Schema.define(version: 20140411001620) do
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
 
   create_table "astronauts", force: true do |t|
     t.string   "name"
@@ -35,6 +38,26 @@ ActiveRecord::Schema.define(version: 20131022020655) do
     t.integer  "motor_vehicle_id"
     t.boolean  "stick_shift"
     t.boolean  "convertible"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "categories", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "experiment_space_ship_performances", force: true do |t|
+    t.integer  "experiment_id"
+    t.integer  "space_ship_id"
+    t.date     "performed_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "experiments", force: true do |t|
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -70,6 +93,7 @@ ActiveRecord::Schema.define(version: 20131022020655) do
 
   create_table "space_ships", force: true do |t|
     t.integer  "vehicle_id"
+    t.integer  "category_id"
     t.boolean  "single_use"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -81,6 +105,7 @@ ActiveRecord::Schema.define(version: 20131022020655) do
     t.integer  "power"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "upgraded_from_id"
   end
 
   create_table "vehicles", force: true do |t|
@@ -101,12 +126,17 @@ ActiveRecord::Schema.define(version: 20131022020655) do
 
   add_foreign_key "captains", "space_ships", :name => "captains_space_ship_id_fk"
 
+  add_foreign_key "experiment_space_ship_performances", "experiments", :name => "experiment_space_ship_performances_experiment_id_fk"
+  add_foreign_key "experiment_space_ship_performances", "space_ships", :name => "experiment_space_ship_performances_space_ship_id_fk"
+
   add_foreign_key "launches", "space_ships", :name => "launches_space_ship_id_fk"
 
   add_foreign_key "rocket_engines", "space_ships", :name => "rocket_engines_space_ship_id_fk"
 
+  add_foreign_key "space_ships", "categories", :name => "space_ships_category_id_fk"
   add_foreign_key "space_ships", "vehicles", :name => "space_ships_vehicle_id_fk"
 
   add_foreign_key "space_shuttles", "space_ships", :name => "space_shuttles_space_ship_id_fk"
+  add_foreign_key "space_shuttles", "space_ships", :name => "space_shuttles_upgraded_from_id_fk", :column => "upgraded_from_id"
 
 end
