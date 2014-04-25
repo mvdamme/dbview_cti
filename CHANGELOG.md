@@ -1,3 +1,8 @@
+## 0.1.5 (25/04/2014)
+
+* Made associations respect the class_name option
+* Fixed cti_recreate_views_after_change_to so it also works for the base class
+
 ## 0.1.4 (8/04/2014)
 
 * Fixed association issues
