@@ -175,7 +175,7 @@ end
 
 ## Associations
 
-Associations (`has_many`, `has_one`, etc.) work and are inherited as you would expect. There are two caveats:
+Associations (`has_many`, `has_one`, etc.) work and are inherited as you would expect. There are three caveats:
 
 * In the base class, you have to call `cti_base_class` before defining any associations:
 
@@ -198,6 +198,8 @@ class SpaceShip < Vehicle
   has_and_belongs_to_many :astronauts, :join_table => 'astronauts_space_ships'
 end
 ```
+
+* You have to make sure that the association is defined in both classes, e.g. if you have `belongs_to :car` in a class called Part then Car should also define the association with `has_many :parts` (or `has_one :part`).
 
 ## API
 
