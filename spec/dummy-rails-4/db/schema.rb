@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140411001620) do
+ActiveRecord::Schema.define(version: 20140425182847) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -113,6 +113,7 @@ ActiveRecord::Schema.define(version: 20140411001620) do
     t.integer  "mass"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "bogus_field"
   end
 
   cti_create_view('MotorVehicle')

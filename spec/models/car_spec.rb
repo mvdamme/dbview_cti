@@ -18,11 +18,13 @@ describe Car do
     @car.name = 'Porsche'
     @car.fuel = 'gasoline'
     @car.convertible = true
+    @car.bogus_field = 'bogus'
     @car.save!
     car = Car.find(id)
     car.name.should eq 'Porsche'
     car.mass.should eq 1000
     car.fuel.should eq 'gasoline'
+    car.bogus_field.should eq 'bogus'
     car.stick_shift.should be_true
     car.convertible.should be_true
   end

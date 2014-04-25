@@ -22,19 +22,18 @@ module DBViewCTI
       # use with block in up/down methods
       def cti_recreate_views_after_change_to(class_name, options = {})
         klass = class_name.constantize
-        classes = [ class_name ] + klass.cti_all_descendants
+        classes = klass.cti_all_descendants
+        # only add class_name if it is not the base class
+        classes = classes.unshift( class_name ) unless klass.cti_base_class?
         # drop all views in reverse order
         classes.reverse.each do |kklass|
           cti_drop_view(kklass, options)
         end
         yield # perform table changes in block (e.g. add column)
         # recreate views in forward order
+        cti_reset_column_information(class_name) if klass.cti_base_class?
         classes.each do |kklass|
-          # any column changes are reflected in the real table cache, but not in the
-          # view cache, so we have to make sure it is cleared
-          true_klass = kklass.constantize
-          true_klass.connection.schema_cache.clear_table_cache!(true_klass.table_name) 
-          true_klass.reset_column_information 
+          cti_reset_column_information(kklass)
           cti_create_view(kklass, options)
         end
       end
@@ -47,6 +46,16 @@ module DBViewCTI
           execute(query)
         end
       end
+      
+      private
+      
+        def cti_reset_column_information(class_name)
+          # any column changes are reflected in the real table cache, but not in the
+          # view cache, so we have to make sure it is cleared
+          klass = class_name.constantize
+          klass.connection.schema_cache.clear_table_cache!(klass.table_name) 
+          klass.reset_column_information 
+        end
 
     end
   end
