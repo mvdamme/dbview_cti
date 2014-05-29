@@ -33,6 +33,7 @@ gem "rails", rails
 group :test, :development do
   gem "activerecord-postgresql-adapter", :platforms => [:ruby, :mswin, :mingw]
   gem "activerecord-jdbcpostgresql-adapter", :platforms => [:jruby]  
+  gem "minitest"
 end
 
 # for rubinius testing in Travis (cf. travis docs)

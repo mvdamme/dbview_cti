@@ -32,6 +32,10 @@ module DBViewCTI
           proxy_name = self.class.cti_association_proxy_name(association_name)
           proxy = instance_variable_get(proxy_name)
           if !proxy && !self.class.cti_has_association?(association_name)
+            # As of Rails 4.1, Rails apparently adds an has_many association (with class name starting with HABTM_) for each
+            # has_and_belongs_to_many association. We return nil in that case.
+            reflection = self.class.reflect_on_all_associations(:has_many).select { |a| a.name == association_name }.first
+            return nil if reflection && reflection.klass.name[0..5] == 'HABTM_'
             instance_variable_set(proxy_name, 
                                   ModelDelegator.new(self, self.class.cti_association_proxies[proxy_name]))
             proxy = instance_variable_get(proxy_name)
