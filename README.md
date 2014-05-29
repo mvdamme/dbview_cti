@@ -3,9 +3,10 @@
 
 This gem implements [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html) (CTI) 
 for Rails, as an alternative to Single Table Inheritance (STI). The implementation is based on database views.
+It allows you to combine polymorphism with database foreign key constraints.
 
-Currently, only PostgreSQL (version >= 9.1) is supported. The gem works for both Rails 3.2 and Rails 4 apps, and on 
-MRI (>= 1.9.3), Rubinius and JRuby in 1.9 mode (due to some issues JRuby is not included in the travis tests, though).
+Currently, only PostgreSQL (version >= 9.1) is supported. The gem supports Rails 3.2, Rails 4 and Rails 4.1 apps running on 
+MRI (>= 1.9.3), Rubinius and JRuby in 1.9 mode.
 
 ## Installation
 
@@ -280,3 +281,7 @@ the id of a Car instance will generally be different than the id of the MotorVeh
 convert the Car instance to a MotorVehicle.
 * The gem intercepts calls to destroy to make sure all rows in all tables are removed. This is not the case for 
 delete_all, however, so avoid using delete_all for classes in the CTI hierarchy.
+
+### Is it production ready?
+
+Yes, it is. I'm using it in production in two (relatively small) apps without any issues.

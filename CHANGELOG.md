@@ -1,3 +1,7 @@
+## 0.2.0 (29/05/2014)
+
+* Added support for Rails 4.1.
+
 ## 0.1.5 (25/04/2014)
 
 * Made associations respect the class_name option
