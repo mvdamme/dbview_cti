@@ -1,3 +1,7 @@
+## 0.2.1 (29/06/2014)
+
+* Fixed bug that occured when using Rails 4.1.2.
+
 ## 0.2.0 (29/05/2014)
 
 * Added support for Rails 4.1.
