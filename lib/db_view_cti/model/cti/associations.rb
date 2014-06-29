@@ -29,6 +29,7 @@ module DBViewCTI
         
         def cti_association_proxy(association_name)
           return nil if self.class.reflect_on_all_associations(:belongs_to).map(&:name).include?(association_name.to_sym)
+          return nil if !self.class.reflect_on_all_associations.map(&:name).include?(association_name.to_sym) # necessary since rails 4.1.2
           proxy_name = self.class.cti_association_proxy_name(association_name)
           proxy = instance_variable_get(proxy_name)
           if !proxy && !self.class.cti_has_association?(association_name)
