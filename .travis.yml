@@ -19,3 +19,5 @@ before_script:
   - ruby ./migrate_up.rb
 after_success_script:
   - ruby ./migrate_down.rb
+before_install:
+  - gem install bundler
