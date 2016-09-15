@@ -5,7 +5,8 @@ module DBViewCTI
     extend ActiveSupport::Concern
 
     included do
-      alias_method_chain :tables, :cti_views
+      alias_method :tables_without_cti_views, :tables
+      alias_method :tables, :tables_with_cti_views
     end
 
     def tables_with_cti_views(stream)

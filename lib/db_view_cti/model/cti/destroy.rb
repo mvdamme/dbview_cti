@@ -6,10 +6,17 @@ module DBViewCTI
 
         # change destroy and delete methods to operate on most specialized object
         included do
-          alias_method_chain :destroy, :cti
-          alias_method_chain :delete, :cti
+          alias_method :destroy_without_cti, :destroy
+          alias_method :destroy, :destroy_with_cti
+
+          alias_method :delete_without_cti, :delete
+          alias_method :delete, :delete_with_cti
+
           # destroy! seems te be defined in Rails 4
-          alias_method_chain :destroy!, :cti if self.method_defined?(:destroy!)
+          if self.method_defined?(:destroy!)
+            alias_method :destroy_without_cti!, :destroy!
+            alias_method :destroy!, :destroy_with_cti!
+          end
         end
         
         def destroy_with_cti

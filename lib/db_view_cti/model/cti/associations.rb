@@ -6,7 +6,9 @@ module DBViewCTI
 
         included do
           # for associations:
-          alias_method_chain :association, :cti
+          # alias_method_chain :association, :cti
+          alias_method :association_without_cti, :association
+          alias_method :association, :association_with_cti
           # save callbacks (necessary for saving associations)
           after_save :cti_save_associations
         end
