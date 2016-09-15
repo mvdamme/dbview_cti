@@ -7,10 +7,10 @@ describe Car do
   end
   
   it "creates parent-class records on create" do
-    Vehicle.count.should eq 1
-    MotorVehicle.count.should eq 1
-    Car.count.should eq 1
-    MotorCycle.count.should eq 0
+    expect(Vehicle.count).to eq 1
+    expect(MotorVehicle.count).to eq 1
+    expect(Car.count).to eq 1
+    expect(MotorCycle.count).to eq 0
   end
 
   it "updates properties of ancestor classes" do
@@ -21,40 +21,40 @@ describe Car do
     @car.bogus_field = 'bogus'
     @car.save!
     car = Car.find(id)
-    car.name.should eq 'Porsche'
-    car.mass.should eq 1000
-    car.fuel.should eq 'gasoline'
-    car.bogus_field.should eq 'bogus'
-    car.stick_shift.should be_true
-    car.convertible.should be_true
+    expect(car.name).to eq 'Porsche'
+    expect(car.mass).to eq 1000
+    expect(car.fuel).to eq 'gasoline'
+    expect(car.bogus_field).to eq 'bogus'
+    expect(car.stick_shift).to be_truthy
+    expect(car.convertible).to be_truthy
   end
   
   it "deletes parent-class records on destroy" do
     @car.destroy
-    Vehicle.count.should eq 0
-    MotorVehicle.count.should eq 0
-    Car.count.should eq 0
+    expect(Vehicle.count).to eq 0
+    expect(MotorVehicle.count).to eq 0
+    expect(Car.count).to eq 0
   end
   
   it "converts to parent classes" do
     motor_vehicle = @car.convert_to(:motor_vehicle)
-    motor_vehicle.class.name.should eq 'MotorVehicle'
-    motor_vehicle.specialize.id.should eq @car.id
+    expect(motor_vehicle.class.name).to eq 'MotorVehicle'
+    expect(motor_vehicle.specialize.id).to eq @car.id
     vehicle = @car.convert_to(:vehicle)
-    vehicle.class.name.should eq 'Vehicle'
-    vehicle.specialize.id.should eq @car.id
+    expect(vehicle.class.name).to eq 'Vehicle'
+    expect(vehicle.specialize.id).to eq @car.id
   end
   
   it "doesn't convert to non-parent class" do
-    @car.convert_to(:motor_cycle).should be_nil
+    expect(@car.convert_to(:motor_cycle)).to be_nil
   end
   
   it "correctly reports ascendants" do
-    Car.cti_ascendants.should eq %w( Vehicle MotorVehicle ) 
+    expect(Car.cti_ascendants).to eq %w( Vehicle MotorVehicle ) 
   end
   
   it "correctly reports descendants" do
-    Car.cti_all_descendants.should eq [] 
+    expect(Car.cti_all_descendants).to eq [] 
   end
   
 end
