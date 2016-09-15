@@ -1,8 +1,7 @@
 language: ruby
 rvm:
   - 2.2.2
-  - 2.4.0
-  - rbx-2
+  - 2.2.4
 env:
   - "RAILS_VERSION=3.2.0"
   - "RAILS_VERSION=4.0.0"
