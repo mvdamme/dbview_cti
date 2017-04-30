@@ -1,4 +1,6 @@
-class CreateRocketEngines < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateRocketEngines < MigrationHelper.migration_base_class
   def change
     create_table :rocket_engines do |t|
       t.references :space_ship

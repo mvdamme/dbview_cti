@@ -1,4 +1,6 @@
-class CreateExperimentSpaceShipPerformances < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateExperimentSpaceShipPerformances < MigrationHelper.migration_base_class
   def change
     create_table :experiment_space_ship_performances do |t|
       t.references :experiment

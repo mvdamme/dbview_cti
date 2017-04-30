@@ -1,4 +1,6 @@
-class CreateLaunches < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateLaunches < MigrationHelper.migration_base_class
   def change
     create_table :launches do |t|
       t.references :space_ship

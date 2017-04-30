@@ -1,4 +1,6 @@
-class CreateSpaceShips < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateSpaceShips < MigrationHelper.migration_base_class
   def change
     create_table :space_ships do |t|
       t.references :vehicle

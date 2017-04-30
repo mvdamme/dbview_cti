@@ -1,4 +1,6 @@
-class CreateCaptains < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateCaptains < MigrationHelper.migration_base_class
   def change
     create_table :captains do |t|
       t.references :space_ship

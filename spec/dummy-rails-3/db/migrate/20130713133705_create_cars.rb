@@ -1,4 +1,6 @@
-class CreateCars < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateCars < MigrationHelper.migration_base_class
   def change
     create_table :cars do |t|
       t.references :motor_vehicle

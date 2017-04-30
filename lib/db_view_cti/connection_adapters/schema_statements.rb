@@ -53,8 +53,12 @@ module DBViewCTI
           # any column changes are reflected in the real table cache, but not in the
           # view cache, so we have to make sure it is cleared
           klass = class_name.constantize
-          klass.connection.schema_cache.clear_table_cache!(klass.table_name) 
-          klass.reset_column_information 
+          if Rails::VERSION::MAJOR >= 5
+            klass.connection.schema_cache.clear_data_source_cache!(klass.table_name)
+          else
+            klass.connection.schema_cache.clear_table_cache!(klass.table_name)
+          end
+          klass.reset_column_information
         end
 
     end

@@ -1,4 +1,6 @@
-class CreateHabtmJoinTable < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class CreateHabtmJoinTable < MigrationHelper.migration_base_class
   def change
     create_table :astronauts_space_ships, id: false do |t|
       t.integer :astronaut_id

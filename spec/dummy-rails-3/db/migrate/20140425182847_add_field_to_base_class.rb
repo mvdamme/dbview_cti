@@ -1,4 +1,6 @@
-class AddFieldToBaseClass < ActiveRecord::Migration
+require_relative './migration_helper'
+
+class AddFieldToBaseClass < MigrationHelper.migration_base_class
   def up
     # this makes cti_recreate_views_after_change_to also works for the base class
     cti_recreate_views_after_change_to('Vehicle') do
