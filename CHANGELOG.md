@@ -1,3 +1,7 @@
+## 0.2.3 (30/04/2017)
+
+* Added support for Rails 5.1.
+
 ## 0.2.2 (15/09/2016)
 
 * Fix deprecation messages that appeared when using Rails 5.
