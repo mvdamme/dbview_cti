@@ -6,8 +6,11 @@ module DBViewCTI
     end
 
     def self.table_name(klass)
-      binding.pry
-      ActiveSupport::Inflector.tableize( self.class_name(klass) )
+      unless klass.name.include? '::'
+        ActiveSupport::Inflector.tableize( self.class_name(klass) )
+      else
+        ActiveSupport::Inflector.tableize( self.class_name(klass.name.split('::').last) )
+      end
     end
     
     def self.foreign_key(klass)
