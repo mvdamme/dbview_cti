@@ -14,8 +14,8 @@ module DBViewCTI
             LANGUAGE plpgsql
             AS $function$
               DECLARE
-                base_id integer;
-                derived_id integer;
+                base_id uuid;
+                derived_id uuid;
                 return_row RECORD;
               BEGIN
                 IF TG_OP = 'INSERT' THEN
