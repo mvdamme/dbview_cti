@@ -6,6 +6,7 @@ module DBViewCTI
         
         def create_trigger_sql
           # trigger function
+          id_type = 'uuid'
           @trigger_func_name = DBViewCTI::Names.trigger_function_name(@derived_class)
   
           insert_trigger_func = <<-eos
@@ -14,8 +15,8 @@ module DBViewCTI
             LANGUAGE plpgsql
             AS $function$
               DECLARE
-                base_id uuid;
-                derived_id uuid;
+                base_id #{id_type};
+                derived_id #{id_type};
                 return_row RECORD;
               BEGIN
                 IF TG_OP = 'INSERT' THEN

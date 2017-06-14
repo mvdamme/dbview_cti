@@ -6,6 +6,7 @@ module DBViewCTI
     end
 
     def self.table_name(klass)
+      binding.pry
       ActiveSupport::Inflector.tableize( self.class_name(klass) )
     end
     
