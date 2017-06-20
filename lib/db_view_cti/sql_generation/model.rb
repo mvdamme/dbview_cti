@@ -35,6 +35,7 @@ module DBViewCTI
       
       # generates inner-join query used in convert_to(target_class)
       def cti_inner_join_sql(id, target_class)
+        id_of_type = id.is_a?(String) ? "'#{ id if id }'" : "#{ id if id }"
         if @cti_inner_join_query && @cti_inner_join_query[target_class]
           return @cti_inner_join_query[target_class] + id_of_type
         end
