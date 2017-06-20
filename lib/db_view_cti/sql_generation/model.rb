@@ -2,10 +2,11 @@ module DBViewCTI
   module SQLGeneration
     module Model
 
-      # generates left-outer-join query used in specialize and type
+     # generates left-outer-join query used in specialize and type
      def cti_outer_join_sql(id)
+        id_of_type = id.is_a?(String) ? "'#{ id if id }'" : "#{ id if id }"
         if !@cti_outer_join_query.nil?
-          return [@cti_outer_join_query + "#{id if id}", @cti_outer_join_levels]
+          return [@cti_outer_join_query + id_of_type, @cti_outer_join_levels]
         end
         start = "SELECT #{DBViewCTI::Names.table_name(self)}.id AS #{DBViewCTI::Names.foreign_key(self)}"
         end_  = "\nFROM #{DBViewCTI::Names.table_name(self)}"
@@ -29,13 +30,13 @@ module DBViewCTI
         @cti_descendants.each(&block)
         @cti_outer_join_query = start + end_ + "\nWHERE #{DBViewCTI::Names.table_name(self)}.id = "
         @cti_outer_join_levels = levels
-        [@cti_outer_join_query + "#{id if id}", @cti_outer_join_levels]
+        [@cti_outer_join_query + id_of_type, @cti_outer_join_levels]
       end
       
       # generates inner-join query used in convert_to(target_class)
       def cti_inner_join_sql(id, target_class)
         if @cti_inner_join_query && @cti_inner_join_query[target_class]
-          return @cti_inner_join_query[target_class] + "#{id if id}"
+          return @cti_inner_join_query[target_class] + id_of_type
         end
         return nil if !@cti_ascendants.include?(target_class)
         query = "SELECT #{DBViewCTI::Names.table_name(target_class)}.id AS #{DBViewCTI::Names.foreign_key(target_class)}" +
@@ -52,7 +53,7 @@ module DBViewCTI
         query += "\nWHERE #{DBViewCTI::Names.table_name(self)}.id = "
         @cti_inner_join_query ||= {}
         @cti_inner_join_query[target_class] = query
-        query + "#{id if id}"
+        query + id_of_type
       end
       
     end

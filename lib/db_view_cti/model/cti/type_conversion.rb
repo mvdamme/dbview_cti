@@ -23,7 +23,11 @@ module DBViewCTI
           foreign_key = result_levels.max_by { |k,v| v }.first
           class_name = DBViewCTI::Names.table_to_class_name(foreign_key[0..-4])
           if return_id
-            id_ = result[foreign_key].to_i
+            unless result[foreign_key].is_a?(String)
+              id_ = result[foreign_key].to_i
+            else
+              id_ = result[foreign_key]
+            end
             [class_name, id_]
           else
             class_name
