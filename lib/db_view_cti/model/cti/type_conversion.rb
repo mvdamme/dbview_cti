@@ -50,7 +50,11 @@ module DBViewCTI
           result = self.class.connection.execute(query).first
           id = result[ DBViewCTI::Names.foreign_key(type.to_s) ]
           return nil if id.nil?
-          type_string.constantize.find(id.to_i)
+          unless id.is_a?(String)
+            type_string.constantize.find(id.to_i)
+          else
+            type_string.constantize.find(id)
+          end
         end
         
       end
