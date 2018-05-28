@@ -85,6 +85,7 @@ describe SpaceShuttle do
         launch.space_ship = @shuttle
         launch.save!
       }.to change(Launch, :count).by(1)
+      expect( @shuttle.convert_to(:space_ship).id ).to eq( launch.space_ship_id )
       launch.destroy
       launch = Launch.new(:date => Date.today)
       expect {
@@ -182,6 +183,7 @@ describe SpaceShuttle do
         experiment.space_ships = [@shuttle, shuttle2]
         experiment.save!
       }.to change(ExperimentSpaceShipPerformance, :count).by(2)
+      expect( experiment.space_ships.order(:id).map(&:id) ).to eq( [ @shuttle.convert_to(:space_ship).id, shuttle2.convert_to(:space_ship).id ] )
       ExperimentSpaceShipPerformance.all.map(&:destroy)
       expect {
         experiment.space_ships << @shuttle
