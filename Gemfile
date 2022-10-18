@@ -28,14 +28,21 @@ else
   "~> #{rails_version}"
 end
 
+rails_major_version, rails_minor_version = rails.split.last.split('.')[0..1].map(&:to_i)
+
 gem "rails", rails
 
 group :test, :development do
-  gem "pg", '~> 0.11', :platforms => [:ruby, :mswin, :mingw]
+  if rails_major_version < 6 || (rails_major_version == 6 && rails_minor_version == 0)
+    gem "pg", '~> 0.11', :platforms => [:ruby, :mswin, :mingw]
+  else
+    gem "pg", :platforms => [:ruby, :mswin, :mingw]
+  end
   gem "activerecord-postgresql-adapter", :platforms => [:ruby, :mswin, :mingw]
   gem "activerecord-jdbcpostgresql-adapter", :platforms => [:jruby]  
   gem "minitest"
   gem "test-unit"
+  gem "byebug"
 end
 
 # for rubinius testing in Travis (cf. travis docs)

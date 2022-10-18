@@ -5,8 +5,8 @@ This gem implements [Class Table Inheritance](http://martinfowler.com/eaaCatalog
 for Rails, as an alternative to Single Table Inheritance (STI). The implementation is based on database views.
 It allows you to combine polymorphism with database foreign key constraints.
 
-Currently, only PostgreSQL (version >= 9.1) is supported. The gem supports Rails 3.2, 4.0, 4.1, 4.2, 5.0, 5.1 and 5.2 apps running on 
-MRI (>= 1.9.3), Rubinius and JRuby in 1.9 mode.
+Currently, only PostgreSQL (version >= 9.1) is supported. The gem supports Rails 3.2, 4.0, 4.1, 4.2, 5.0, 5.1, 5.2, 6.0 and 6.1 apps running on 
+MRI (>= 1.9.3), Rubinius and JRuby.
 
 ## Installation
 

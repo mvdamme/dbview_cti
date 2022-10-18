@@ -15,7 +15,14 @@ module DBViewCTI
           self.class.cti_association_proxies.each_key do |proxy_name|
             proxy = instance_variable_get(proxy_name)
             if proxy && !proxy.valid?
-              errors.messages.merge!(proxy.errors.messages)
+              if Rails::VERSION::MAJOR < 6 || (Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 0)
+                errors.messages.merge!(proxy.errors.messages)
+              else
+                proxy.errors.each do |error|
+                  attribute = error.attribute.to_s.split('.').first.to_sym  # convert attribute name to association name
+                  errors.add(attribute, error.type, error.options)
+                end
+              end
               return_value = false
             end
           end
