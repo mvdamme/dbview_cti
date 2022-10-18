@@ -21,8 +21,10 @@ Gem::Specification.new do |s|
 
   if !ENV["RAILS_VERSION"] || ENV["RAILS_VERSION"][0].to_i <= 5
     s.add_development_dependency "rspec-rails", "~> 3.5"
-  else
+  elsif ENV["RAILS_VERSION"][0].to_i == 6
     s.add_development_dependency "rspec-rails", "~> 4.0"
+  else
+    s.add_development_dependency "rspec-rails"
   end
   if ENV["RAILS_VERSION"] && ENV["RAILS_VERSION"][0].to_i < 5
     s.add_development_dependency "foreigner"

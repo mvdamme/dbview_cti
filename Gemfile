@@ -39,7 +39,7 @@ end
 gem "rails", rails
 
 group :test, :development do
-  if rails_major_version < 6 || (rails_major_version == 6 && rails_minor_version == 0)
+  if rails_major_version < 6 || (rails_major_version == 6 && rails_minor_version == 0 && RUBY_VERSION < '3.0')
     gem "pg", '~> 0.11', :platforms => [:ruby, :mswin, :mingw]
   else
     gem "pg", :platforms => [:ruby, :mswin, :mingw]
