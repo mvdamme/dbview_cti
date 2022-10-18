@@ -153,12 +153,23 @@ which is not necessarily the case since rails lazy-loads classes (e.g. in develo
 Therefore, we have to force loading of all classes by referencing the leaf-classes in the hierarchy in an initializer.
 
 For the example given above the leaf classes are Car and MotorCycle, so we put the following in an initializer (e.g. in 
-`config/initializers/dbview_cti.rb`):
+`config/initializers/dbview_cti.rb`), for Rails versions using the classic autoloader:
 
 ```ruby
 # Force loading of all classes in the CTI hierachy by referencing the leaf classes here
 Car
 MotorCycle
+```
+
+For Rails versions using the Zeitwerk autoloader (Rails 6+), we cannot reference models inside initializers. This can 
+solved using an `after_initialize` block in the initializer:
+
+```ruby
+# Force loading of all classes in the CTI hierachy by referencing the leaf classes here
+Rails.application.config.after_initialize do
+  Car
+  MotorCycle
+end
 ```
 
 In development mode, Rails reloads files as you modify them. If a file in the class hierarchy is modified, all classes 
