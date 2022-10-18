@@ -6,7 +6,7 @@ source "http://rubygems.org"
 gemspec
 
 # jquery-rails is used by the dummy application
-gem "jquery-rails"
+#gem "jquery-rails"
 
 # Declare any dependencies that are still in development here instead of in
 # your gemspec. These might include edge Rails or gems from your path or
@@ -30,6 +30,12 @@ end
 
 rails_major_version, rails_minor_version = rails.split.last.split('.')[0..1].map(&:to_i)
 
+if rails_major_version == 6 && RUBY_VERSION >= '3.0'
+  gem 'net-smtp', require: false
+  gem 'net-imap', require: false
+  gem 'net-pop', require: false
+end
+
 gem "rails", rails
 
 group :test, :development do
@@ -43,11 +49,4 @@ group :test, :development do
   gem "minitest"
   gem "test-unit"
   gem "byebug"
-end
-
-# for rubinius testing in Travis (cf. travis docs)
-platforms :rbx do
-  gem 'racc'
-  gem 'rubysl', '~> 2.0'
-  gem 'psych'
 end

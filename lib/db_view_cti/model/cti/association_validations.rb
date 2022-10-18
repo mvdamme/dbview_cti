@@ -20,7 +20,11 @@ module DBViewCTI
               else
                 proxy.errors.each do |error|
                   attribute = error.attribute.to_s.split('.').first.to_sym  # convert attribute name to association name
-                  errors.add(attribute, error.type, error.options)
+                  if RUBY_VERSION >= '2.7'
+                    errors.add(attribute, error.type, **error.options)
+                  else
+                    errors.add(attribute, error.type, error.options)
+                  end
                 end
               end
               return_value = false

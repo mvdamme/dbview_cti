@@ -50,13 +50,23 @@ module DBViewCTI
           
           # redefine association class methods
           [:has_many, :has_and_belongs_to_many, :has_one].each do |name|
-            self.class_eval <<-eos, __FILE__, __LINE__+1
-              def #{name}(*args, &block)
-                cti_initialize_cti_associations
-                @cti_associations[:#{name}] << args.first
-                super
-              end
-            eos
+            if RUBY_VERSION >= '2.7'
+              self.class_eval <<-eos, __FILE__, __LINE__+1
+                def #{name}(name, *args, **kwargs, &block)
+                  cti_initialize_cti_associations
+                  @cti_associations[:#{name}] << name
+                  super
+                end
+              eos
+            else
+              self.class_eval <<-eos, __FILE__, __LINE__+1
+                def #{name}(*args, &block)
+                  cti_initialize_cti_associations
+                  @cti_associations[:#{name}] << args.first
+                  super
+                end
+              eos
+            end
           end
   
           def cti_create_association_proxies
