@@ -24,6 +24,23 @@ module DBViewCTI
           # that were defined after the call to cti_derived_class or cti_base_class
           self.superclass.cti_redefine_remote_associations
         end
+
+        if Rails::VERSION::MAJOR > 7 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
+
+          # redefine _returning_columns_for_insert from activerecord/lib/active_record/model_schema.rb
+          def _returning_columns_for_insert
+            @__returning_columns_for_insert ||= begin
+              if instance_variable_defined?("@cti_derived_class")
+                columns_for_insert = super
+                columns_for_insert << 'id' unless columns_for_insert.include?('id')  # add 'id' if not present
+                columns_for_insert
+              else
+                super
+              end
+            end
+          end
+
+        end
   
       end
     end
